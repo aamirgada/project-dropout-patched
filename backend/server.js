@@ -1,22 +1,28 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const path = require('path');
 const connectDB = require('./config/db');
 
-// Load env vars
+// Load environment variables
 dotenv.config();
 
-// Connect to database
+// Connect to MongoDB
 connectDB();
 
 const app = express();
 
-// Middleware
-app.use(cors());
+/* =======================
+   Middleware
+======================= */
+app.use(cors({
+  origin: '*', // you can restrict this to your Vercel domain later
+  credentials: true
+}));
 app.use(express.json());
 
-// Routes
+/* =======================
+   API Routes
+======================= */
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/students', require('./routes/studentRoutes'));
@@ -24,16 +30,16 @@ app.use('/api/predictions', require('./routes/predictionRoutes'));
 app.use('/api/sessions', require('./routes/sessionRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 
-// Serve static assets if in production (optional)
-if (process.env.NODE_ENV === 'production') {
-  const clientBuildPath = path.join(__dirname, '..', 'frontend', 'dist');
-  app.use(express.static(clientBuildPath));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(clientBuildPath, 'index.html'));
-  });
-}
+/* =======================
+   Health Check Route
+======================= */
+app.get('/', (req, res) => {
+  res.json({ message: 'API is running 🚀' });
+});
 
-// Error handling middleware
+/* =======================
+   Global Error Handler
+======================= */
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.statusCode || 500).json({
@@ -42,8 +48,10 @@ app.use((err, req, res, next) => {
   });
 });
 
+/* =======================
+   Start Server
+======================= */
 const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
