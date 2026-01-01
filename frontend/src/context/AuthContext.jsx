@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
     if (token && storedUser) {
       try {
         setUser(JSON.parse(storedUser));
-      } catch (error) {
+      } catch {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
       }
@@ -30,20 +30,16 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const { data } = await api.post('/auth/login', { email, password });
+      const { data } = await api.post('/api/auth/login', { email, password });
+
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       setUser(data.user);
-      
-      // Navigate based on role
-      if (data.user.role === 'admin') {
-        navigate('/admin');
-      } else if (data.user.role === 'mentor') {
-        navigate('/mentor');
-      } else {
-        navigate('/student');
-      }
-      
+
+      if (data.user.role === 'admin') navigate('/admin');
+      else if (data.user.role === 'mentor') navigate('/mentor');
+      else navigate('/student');
+
       return { success: true };
     } catch (error) {
       return {
@@ -55,20 +51,16 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const { data } = await api.post('/auth/register', userData);
+      const { data } = await api.post('/api/auth/register', userData);
+
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       setUser(data.user);
-      
-      // Navigate based on role
-      if (data.user.role === 'admin') {
-        navigate('/admin');
-      } else if (data.user.role === 'mentor') {
-        navigate('/mentor');
-      } else {
-        navigate('/student');
-      }
-      
+
+      if (data.user.role === 'admin') navigate('/admin');
+      else if (data.user.role === 'mentor') navigate('/mentor');
+      else navigate('/student');
+
       return { success: true };
     } catch (error) {
       return {
@@ -85,14 +77,18 @@ export const AuthProvider = ({ children }) => {
     navigate('/login');
   };
 
-  const value = {
-    user,
-    login,
-    register,
-    logout,
-    loading,
-    isAuthenticated: !!user,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        register,
+        logout,
+        loading,
+        isAuthenticated: !!user,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
