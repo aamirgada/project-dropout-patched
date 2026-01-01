@@ -1,19 +1,20 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const path = require('path');
 const connectDB = require('./config/db');
 
-// Load env vars
+// Load environment variables
 dotenv.config();
 
-// Connect to database
+// Connect to MongoDB Atlas
 connectDB();
 
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: '*', // allow all origins (safe for now)
+}));
 app.use(express.json());
 
 // Routes
@@ -24,26 +25,22 @@ app.use('/api/predictions', require('./routes/predictionRoutes'));
 app.use('/api/sessions', require('./routes/sessionRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 
-// Serve static assets if in production (optional)
-if (process.env.NODE_ENV === 'production') {
-  const clientBuildPath = path.join(__dirname, '..', 'frontend', 'dist');
-  app.use(express.static(clientBuildPath));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(clientBuildPath, 'index.html'));
-  });
-}
+// Root route (for Render health check)
+app.get('/', (req, res) => {
+  res.send('Backend is running successfully 🚀');
+});
 
-// Error handling middleware
+// Global error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.statusCode || 500).json({
     success: false,
-    message: err.message || 'Server Error'
+    message: err.message || 'Server Error',
   });
 });
 
+// Start server
 const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
